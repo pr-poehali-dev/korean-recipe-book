@@ -1,18 +1,10 @@
+import { Recipe } from "@/data/recipes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, ChefHat, Award } from "lucide-react";
+import { Clock, Flame, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-interface FeaturedRecipeProps {
-  id: string;
-  title: string;
-  koreanTitle: string;
-  image: string;
-  description: string;
-  cookTime: number;
-  difficulty: string;
-  categories: string[];
-}
+interface FeaturedRecipeProps extends Recipe {}
 
 const FeaturedRecipe = ({
   id,
@@ -24,55 +16,79 @@ const FeaturedRecipe = ({
   difficulty,
   categories,
 }: FeaturedRecipeProps) => {
+  // Картинки корейских блюд
+  const recipeImages = {
+    "bibimbap": "https://images.unsplash.com/photo-1553163147-622ab57be1c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    "kimchi": "https://images.unsplash.com/photo-1583224874284-0a87abbea0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    "bulgogi": "https://images.unsplash.com/photo-1583018098802-9c1a38e79987?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    "japchae": "https://images.unsplash.com/photo-1583233726297-5f8adee540df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    "tteokbokki": "https://images.unsplash.com/photo-1626162079048-508e5f18560d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+  };
+
+  // Определяем изображение для карточки
+  const recipeImage = recipeImages[id as keyof typeof recipeImages] || image;
+
+  // Определяем цвет для сложности
+  const difficultyColor = {
+    "Легкий": "bg-green-100 text-green-800",
+    "Средний": "bg-yellow-100 text-yellow-800",
+    "Сложный": "bg-red-100 text-red-800",
+  }[difficulty];
+
   return (
-    <div className="relative overflow-hidden rounded-lg bg-card shadow-lg">
-      <div className="md:flex">
-        <div className="md:w-1/2">
-          <img
-            src={image || "/placeholder.svg"}
-            alt={title}
-            className="h-64 w-full object-cover md:h-full"
-          />
-        </div>
-        
-        <div className="p-6 md:w-1/2 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-korean font-medium">{koreanTitle}</p>
-              <Badge className="bg-korean hover:bg-korean-dark">
-                <Award className="h-3 w-3 mr-1" />
-                Рецепт дня
-              </Badge>
+    <div className="group relative rounded-xl overflow-hidden bg-gradient-to-r from-korean to-korean-dark shadow-xl">
+      <div className="absolute inset-0 opacity-20">
+        <img
+          src={recipeImage}
+          alt={title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div 
+        className="relative flex flex-col md:flex-row"
+        style={{
+          background: "linear-gradient(to right, rgba(153, 27, 27, 0.85), rgba(153, 27, 27, 0.7))"
+        }}
+      >
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+          <div className="mb-4">
+            <Badge className="bg-white/20 text-white hover:bg-white/30">
+              Рецепт дня
+            </Badge>
+          </div>
+          {koreanTitle && (
+            <h3 className="text-white/90 text-xl mb-2">{koreanTitle}</h3>
+          )}
+          <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">{title}</h2>
+          <p className="text-white/80 mb-6 text-lg">{description}</p>
+          
+          <div className="flex mb-6 gap-4">
+            <div className="flex items-center text-white/90">
+              <Clock className="mr-2 h-5 w-5" />
+              <span>{cookTime} минут</span>
             </div>
-            
-            <h2 className="text-2xl font-bold mb-2">{title}</h2>
-            <p className="text-muted-foreground mb-4">{description}</p>
-            
-            <div className="flex flex-wrap gap-2 mb-4">
-              {categories.map((category) => (
-                <Badge key={category} variant="secondary" className="bg-korean-light text-korean-dark hover:bg-korean-light">
-                  {category}
-                </Badge>
-              ))}
+            <div className="flex items-center">
+              <Badge variant="outline" className={`${difficultyColor} border-none`}>
+                <Flame className="mr-2 h-4 w-4" />
+                {difficulty}
+              </Badge>
             </div>
           </div>
           
-          <div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 text-muted-foreground mr-1" />
-                <span className="text-sm text-muted-foreground">{cookTime} мин.</span>
-              </div>
-              <div className="flex items-center">
-                <ChefHat className="h-5 w-5 text-muted-foreground mr-1" />
-                <span className="text-sm text-muted-foreground">{difficulty}</span>
-              </div>
-            </div>
-            
-            <Button asChild className="w-full bg-korean hover:bg-korean-dark">
-              <Link to={`/recipe/${id}`}>Смотреть рецепт</Link>
+          <Link to={`/recipe/${id}`}>
+            <Button size="lg" className="bg-white text-korean hover:bg-white/90">
+              Смотреть рецепт
+              <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
-          </div>
+          </Link>
+        </div>
+        
+        <div className="hidden md:block w-1/2 relative overflow-hidden">
+          <img
+            src={recipeImage}
+            alt={title}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
         </div>
       </div>
     </div>
