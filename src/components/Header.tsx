@@ -1,55 +1,89 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  
+  const navigation = [
+    { name: "Главная", href: "/" },
+    { name: "Категории", href: "/categories" },
+    { name: "О корейской кухне", href: "/about" }
+  ];
+  
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+  
   return (
-    <header className="bg-korean py-4 px-6 shadow-md sticky top-0 z-50">
-      <div className="container mx-auto">
-        <div className="flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="container flex h-16 items-center justify-between px-4">
+        <div className="flex items-center">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-white text-2xl font-bold">한식 레시피</span>
-            <span className="text-white text-xl">|</span>
-            <span className="text-white text-xl">Корейские рецепты</span>
+            <span className="text-2xl">🍲</span>
+            <span className="font-bold text-lg">Корейская Кухня</span>
           </Link>
-
-          <div className="flex items-center space-x-4">
-            {isSearchOpen ? (
-              <div className="animate-fade-in flex items-center bg-white rounded-md overflow-hidden w-64">
-                <Input 
-                  placeholder="Поиск рецептов..." 
-                  className="border-none focus-visible:ring-0"
-                  autoFocus
-                  onBlur={() => setTimeout(() => setIsSearchOpen(false), 200)}
-                />
-                <Search className="mr-2 h-5 w-5 text-muted-foreground" />
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsSearchOpen(true)}
-                className="text-white hover:text-korean-light transition-colors"
-              >
-                <Search className="h-6 w-6" />
-              </button>
-            )}
-            
-            <nav className="hidden md:flex space-x-6">
-              <Link to="/" className="text-white hover:text-korean-light transition-colors font-medium">
-                Главная
-              </Link>
-              <Link to="/categories" className="text-white hover:text-korean-light transition-colors font-medium">
-                Категории
-              </Link>
-              <Link to="/about" className="text-white hover:text-korean-light transition-colors font-medium">
-                О книге
-              </Link>
-            </nav>
-          </div>
         </div>
+        
+        {/* Desktop menu */}
+        <nav className="hidden md:flex md:items-center md:space-x-4 lg:space-x-6">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={`text-sm font-medium transition-colors ${
+                isActive(item.href)
+                  ? "text-korean"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+          <Button className="ml-2 bg-korean hover:bg-korean-dark">
+            Добавить рецепт
+          </Button>
+        </nav>
+        
+        {/* Mobile menu button */}
+        <button
+          className="md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
       </div>
+      
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden py-4 px-6 space-y-4 border-b">
+          {navigation.map((item) => (
+            <div key={item.name}>
+              <Link
+                to={item.href}
+                className={`block py-2 text-base font-medium ${
+                  isActive(item.href)
+                    ? "text-korean"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            </div>
+          ))}
+          <Button className="w-full mt-4 bg-korean hover:bg-korean-dark">
+            Добавить рецепт
+          </Button>
+        </div>
+      )}
     </header>
   );
 };
