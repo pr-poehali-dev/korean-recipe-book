@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
-import RecipeCard from "@/components/RecipeCard";
+import Footer from "@/components/Footer";
 import FeaturedRecipe from "@/components/FeaturedRecipe";
+import SearchBar from "@/components/SearchBar";
+import CategoryFilters from "@/components/CategoryFilters";
+import SearchResults from "@/components/SearchResults";
+import RecipeCategories from "@/components/RecipeCategories";
+import KoreanCuisineExplorer from "@/components/KoreanCuisineExplorer";
 import { recipes } from "@/data/recipes";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Search, Filter, ChevronRight, BookOpen, Utensils } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,6 +53,13 @@ const Index = () => {
     }
   };
   
+  // Сброс поиска и фильтров
+  const resetSearch = () => {
+    setSearchQuery("");
+    setActiveFilters([]);
+    setShowingResults(false);
+  };
+  
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -76,169 +83,41 @@ const Index = () => {
         {/* Поиск и фильтры */}
         <section className="mb-8">
           <div className="flex flex-col md:flex-row gap-4 items-start justify-between">
-            <div className="relative w-full md:w-auto flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input
-                placeholder="Найти рецепт, ингредиент или категорию..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            <SearchBar 
+              searchQuery={searchQuery} 
+              setSearchQuery={setSearchQuery} 
+            />
             
-            <div className="w-full md:w-auto flex flex-wrap gap-2">
-              {allCategories.slice(0, 6).map(category => (
-                <Badge 
-                  key={category} 
-                  variant={activeFilters.includes(category) ? "default" : "outline"}
-                  className={`cursor-pointer ${activeFilters.includes(category) ? 'bg-korean text-white' : 'text-korean hover:bg-korean/10'}`}
-                  onClick={() => handleFilterClick(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-              
-              <Button variant="outline" className="ml-2">
-                <Filter className="h-4 w-4 mr-2" />
-                Ещё
-              </Button>
-            </div>
+            <CategoryFilters 
+              categories={allCategories}
+              activeFilters={activeFilters}
+              onFilterClick={handleFilterClick}
+            />
           </div>
         </section>
         
-        {/* Результаты поиска */}
+        {/* Результаты поиска или каталог рецептов */}
         {showingResults ? (
-          <section className="mb-12">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
-                Результаты поиска{" "}
-                {searchQuery && <span className="text-korean">"{searchQuery}"</span>}
-              </h2>
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setSearchQuery("");
-                  setActiveFilters([]);
-                  setShowingResults(false);
-                }}
-              >
-                Сбросить
-              </Button>
-            </div>
-            
-            {filteredRecipes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredRecipes.map(recipe => (
-                  <RecipeCard key={recipe.id} {...recipe} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-medium mb-2">Ничего не найдено</h3>
-                <p className="text-muted-foreground mb-4">
-                  Попробуйте изменить запрос или сбросить фильтры
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchQuery("");
-                    setActiveFilters([]);
-                    setShowingResults(false);
-                  }}
-                >
-                  Показать все рецепты
-                </Button>
-              </div>
-            )}
-          </section>
+          <SearchResults 
+            searchQuery={searchQuery}
+            filteredRecipes={filteredRecipes}
+            resetSearch={resetSearch}
+          />
         ) : (
           <>
-            {/* Вкладки с категориями */}
-            <section className="mb-12">
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <Utensils className="mr-2 h-6 w-6 text-korean" />
-                Наши рецепты
-              </h2>
-              
-              <Tabs defaultValue="all">
-                <TabsList className="mb-6 w-full flex flex-wrap h-auto">
-                  <TabsTrigger value="all">Все рецепты</TabsTrigger>
-                  {allCategories.slice(0, 5).map(category => (
-                    <TabsTrigger key={category} value={category}>
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                
-                <TabsContent value="all" className="animate-fade-in">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {recipes.map(recipe => (
-                      <RecipeCard key={recipe.id} {...recipe} />
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                {allCategories.slice(0, 5).map(category => (
-                  <TabsContent key={category} value={category} className="animate-fade-in">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {recipes
-                        .filter(recipe => recipe.categories.includes(category))
-                        .map(recipe => (
-                          <RecipeCard key={recipe.id} {...recipe} />
-                        ))}
-                    </div>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </section>
+            {/* Категории рецептов */}
+            <RecipeCategories 
+              allCategories={allCategories}
+              recipes={recipes}
+            />
             
             {/* Секция "Изучите корейскую кухню" */}
-            <section className="my-16">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">Изучите корейскую кухню</h2>
-                <p className="text-muted-foreground">Узнайте об истории, ингредиентах и техниках приготовления</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-korean to-korean-dark rounded-lg p-6 text-white shadow-lg transform transition hover:scale-105">
-                  <h3 className="text-xl font-bold mb-2">История</h3>
-                  <p className="mb-4">Познакомьтесь с богатой историей корейской кулинарии, насчитывающей тысячи лет</p>
-                  <Button variant="outline" className="text-white border-white hover:bg-white hover:text-korean">
-                    Подробнее <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="bg-white rounded-lg p-6 shadow-lg transform transition hover:scale-105">
-                  <h3 className="text-xl font-bold mb-2 text-korean">Ингредиенты</h3>
-                  <p className="mb-4 text-muted-foreground">Узнайте об основных ингредиентах, специях и соусах корейской кухни</p>
-                  <Button variant="outline" className="text-korean border-korean hover:bg-korean hover:text-white">
-                    Подробнее <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="bg-korean-accent rounded-lg p-6 text-white shadow-lg transform transition hover:scale-105">
-                  <h3 className="text-xl font-bold mb-2">Техники</h3>
-                  <p className="mb-4">Освойте традиционные техники приготовления и современные методы</p>
-                  <Button variant="outline" className="text-white border-white hover:bg-white hover:text-korean-accent">
-                    Подробнее <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </section>
+            <KoreanCuisineExplorer />
           </>
         )}
       </main>
       
-      <footer className="bg-gray-50 border-t py-8">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2023 Корейская Кулинарная Книга. Все права защищены.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
